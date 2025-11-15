@@ -10,81 +10,44 @@ namespace StringDecompressionAlgorithm
         {
             if (string.IsNullOrEmpty(compressed))
                 return string.Empty;
-            StringBuilder decompressed = new StringBuilder();
-            char[] chars = compressed.ToCharArray();
-            //convert char[] to string[]
-            string[] compressedStringArray = chars.Select(c => c.ToString()).ToArray();
+            StringBuilder decompressed = new();
             StringBuilder substringToDecompress = new();
+            StringBuilder repeatCountInString = new();
 
-            ConcatenateConsecutiveDigits(ref compressedStringArray);
-            Console.WriteLine(chars);
-
-            for (int i = 0; i < compressedStringArray.Length; i++)
+            for (int i = 0; i < compressed.Length; i++)
             {
-                int result;
-                bool isNumber = int.TryParse(compressedStringArray[i].ToString(), out result);
-                if (!isNumber)
+                if (char.IsDigit(compressed[i]))
                 {
-                    substringToDecompress.Append(compressedStringArray[i]);
+                    repeatCountInString.Append(compressed[i]);
                 }
-                else if (isNumber)
+                else
                 {
-                    int repeatCount = result;
-                    string substring = substringToDecompress.ToString();
-                    for (int j = 0; j < repeatCount; j++)
+                    if (repeatCountInString.Length > 0)
                     {
-                        decompressed.Append(substring);
+                        string substring = substringToDecompress.ToString();
+                        for (int j = 0; j < int.Parse(repeatCountInString.ToString()); j++)
+                        {
+                            decompressed.Append(substring);
+                        }
+                        substringToDecompress.Clear();
+                        repeatCountInString.Clear();
                     }
-                    substringToDecompress.Clear();
+                    substringToDecompress.Append(compressed[i]);
                 }
             }
+
+            if (repeatCountInString.Length > 0)
+            {
+                string substring = substringToDecompress.ToString();
+                for (int j = 0; j < int.Parse(repeatCountInString.ToString()); j++)
+                {
+                    decompressed.Append(substring);
+                }
+                substringToDecompress.Clear();
+                repeatCountInString.Clear();
+            }
+
             return decompressed.ToString();
-        }
-
-        private static void ConcatenateConsecutiveDigits(ref string[] compressedStringArray)
-        {
-            StringBuilder substringOfDigits = new StringBuilder();
-            int substringCounter = -1;
-
-            for (int i = 0; i < compressedStringArray.Length; i++)
-            {
-                int firstDigit;
-                int nextDigit;
-                bool isDigit = int.TryParse(compressedStringArray[i].ToString(), out firstDigit);
-                bool isNextDigit = (i+1) < compressedStringArray.Length ?int.TryParse(compressedStringArray[i + 1].ToString(), out nextDigit): false;
-
-                if (isDigit)
-                {
-                    substringOfDigits.Append(compressedStringArray[i]);
-                    substringCounter++;
-                    if (!isNextDigit && substringOfDigits.Length == 1)
-                    {
-                        substringOfDigits.Clear();
-                        substringCounter = -1;
-                    }
-                }
-                else if (!isDigit && substringOfDigits.ToString().Length > 1)
-                {
-                    compressedStringArray[i - (substringCounter+1)] = substringOfDigits.ToString();
-                    List<string> tempList = new List<string>(compressedStringArray);
-                    tempList.RemoveRange(i - substringCounter, substringCounter);
-                    compressedStringArray = tempList.ToArray();
-                    i = i - substringCounter + 1;
-                    substringOfDigits.Clear();
-                    substringCounter = -1;
-                }
-
-                if (i == compressedStringArray.Length - 1 && substringOfDigits.ToString().Length > 1)
-                {
-                    compressedStringArray[i - substringCounter] = substringOfDigits.ToString();
-                    List<string> tempList = new List<string>(compressedStringArray);
-                    tempList.RemoveRange(i, substringCounter);
-                    compressedStringArray = tempList.ToArray();
-                    i = i - substringCounter + 1;
-                    substringOfDigits.Clear();
-                    substringCounter = -1;
-                }
-            }
         }
     }
 }
